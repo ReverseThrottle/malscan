@@ -1,5 +1,5 @@
 # Malscan
-## Malscan is a tool to check threat intel sources, as of right now it only supports VirusTotal. It supports hash checks along with file checks. In future versions O plan to expand its capabilities to support other threat intel sources. 
+** Malscan is a tool to check threat intel sources, as of right now it only supports VirusTotal. It supports hash checks along with file checks. In future versions O plan to expand its capabilities to support other threat intel sources. **
 
 
 ### Install Instructions
@@ -14,15 +14,14 @@
 ![My Image](images/vt_api.png)
 
 ### Future Plans:
-- [] Add support for malwarebazaar and malshare
-- [] Add support for check URLs, domains, and IPs
-- [] Scan multiple file hashes at once
-- [] Download sample
+- [ ] Add support for malwarebazaar and malshare
+- [ ] Add support for check URLs, domains, and IPs
+- [ ] Scan multiple file hashes at once
+- [ ] Download sample
 
-![My Image](images/vt_api.png)
+![My Image](images/malscan_hash.png)
 
-![My Image](images/vt_api.png)
+![My Image](images/malscan_file.png)
 
-![My Image](images/vt_api.png)
+![My Image](images/malscan_flags.png)
 
-![My Image](images/vt_api.png)
