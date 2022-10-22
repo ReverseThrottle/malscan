@@ -1,6 +1,8 @@
 # Malscan
 **Malscan is a tool to check threat intel sources, as of right now it only supports VirusTotal. It supports hash checks along with file checks. In future versions I plan to expand its capabilities to support other threat intel sources.**
 
+*Check out my blog as well for some additional information.*
+[ReverseThrottle Blog](https://zhopp533.gitbook.io/blog/projects/coming-soon)
 
 ### Install Instructions
 1. Git clone repository
