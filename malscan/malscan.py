@@ -1,4 +1,4 @@
-###################################################################################
+#######################################################################################################
 #   Malscan: Threat Intel tool to check file/hash reputation also support file uploads to VirusTotal
 #   Currently supports VirusTotal only, plan to add support for MalwareBazaar and Malshare
 #   Created by: ReverseThrottle
