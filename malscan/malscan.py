@@ -1,4 +1,4 @@
-#######################################################################################################
+###################################################################################
 #   Malscan: Threat Intel tool to check file/hash reputation also support file uploads to VirusTotal
 #   Currently supports VirusTotal only, plan to add support for MalwareBazaar and Malshare
 #   Created by: ReverseThrottle
@@ -10,19 +10,26 @@ import argparse
 import hashlib
 import datetime
 import time
+import base64
 import requests
 import tabulate
 from hurry.filesize import size
 
 
 # Global variables needed
-APIKEY = None                                               # TODO Change this to your VT api key
-CHECKFILESUB = None                                         # Variable used for checking last analysis of sample
-scan_file_url = 'https://www.virustotal.com/api/v3/files'   # VT api url file check
+APIKEY = ''                                               # TODO Change this to your VT api key
+CHECKFILESUB = None                                         # Variable used for checking last analysis of sample (DO NOT CHANGE)
+upload_file_url = 'https://www.virustotal.com/api/v3/files'   # VT api url file check
                                                             # Headers used for VT api
 headers = {
     "Accept": "application/json",
     "x-apikey": APIKEY
+}
+
+url_scan_headers = {
+    "accept": "application/json",
+    "x-apikey": APIKEY,
+    "content-type": "application/x-www-form-urlencoded"
 }
 
 # Arg Parsing and help
@@ -35,6 +42,8 @@ parser.add_argument('--hash', help='Hash string to upload')
 parser.add_argument('--peinfo', help='Shows info about PE (set as True)')
 # Retrieve sandbox information from VT
 parser.add_argument('--sandbox', help='Returns info about sandbox results (set as True)')
+# URL to scan
+parser.add_argument('--url', help='URL that you would like to scan')
 
 # Colors used in script for readability
 class colors:
@@ -63,6 +72,8 @@ def main(args):
         ScanHash(args)
     elif args.file:
         ScanFile(args)
+    elif args.url:
+        ScanURL(args)
     else:
         print(f'In order to run you must include a file hash or path to file to scan')
         exit()
@@ -70,12 +81,12 @@ def main(args):
 
 def ScanHash(args):
     # VT url api
-    check_file_url = 'https://www.virustotal.com/api/v3/files/'
+    scan_file_url = 'https://www.virustotal.com/api/v3/files/'
     print(f'{colors.bold}==========================================================================================={colors.reset}')
     print(f'Checking Hash: {colors.cyan}{args.hash}\n{colors.reset}')
-    check_file_url += args.hash
+    scan_file_url += args.hash
     # Get response from VT
-    response = requests.get(check_file_url, headers=headers)
+    response = requests.get(scan_file_url, headers=headers)
     if response.status_code == 200:
         # Return value converted to json format
         result = response.json()
@@ -98,17 +109,17 @@ def ScanHash(args):
 
 
 def ScanFile(args):
-    check_file_url = 'https://www.virustotal.com/api/v3/files/'
+    scan_file_url = 'https://www.virustotal.com/api/v3/files/'
 
     print(f'{colors.bold}==========================================================================================={colors.reset}')
     print(f'Calculating hash of {colors.cyan}{args.file}{colors.reset}...')
     # Calculates hash of file
     sha256hash = HashFile256(args.file)
     print(f'SHA256 hash: {colors.cyan}{sha256hash}{colors.reset}')
-    check_file_url += sha256hash
+    scan_file_url += sha256hash
     print('Checking VTs database for hash...\n')
     # Uses hash to check VT for hash before trying to upload file to VT
-    response = requests.get(check_file_url, headers=headers)
+    response = requests.get(scan_file_url, headers=headers)
     result = response.json()
     if response.status_code != 404:
         # If hash is found
@@ -119,14 +130,14 @@ def ScanFile(args):
             # Used to send sample to VT
             file = UploadFile(args.file)
             files = {"file": file}
-            response = requests.post(scan_file_url, files=files, headers=headers)
+            response = requests.post(upload_file_url, files=files, headers=headers)
             # Checks response of VT
             if response.status_code == 200:
                 print(f'{colors.cyan}File is queued on VirusTotal....\nWaiting...{colors.reset}')
                 # Waits for VT to analyze file
                 time.sleep(60)
                 # Checks VT again for updated analysis
-                response = requests.get(check_file_url, headers=headers)
+                response = requests.get(scan_file_url, headers=headers)
                 if response.status_code == 200:
                     # Converts response to json
                     result = response.json()
@@ -158,12 +169,14 @@ def ScanFile(args):
         if userInput == 'y':
             file = UploadFile(args.file)
             files = {"file": file}
-            response = requests.post(scan_file_url, files=files, headers=headers)
+            response = requests.post(upload_file_url, files=files, headers=headers)
             # Checks response of VT
             if response.status_code == 200:
-                print(f'{colors.cyan}File is queued on VirusTotal....\nWaiting...{colors.reset}')
+                print(f'{colors.cyan}File is queued on VirusTotal....\n{colors.reset}')
                 time.sleep(60)
-                response = requests.get(check_file_url, headers=headers)
+                print(f'{colors.cyan}File is being analyzed by VirusTotal...\n{colors.reset}')
+                time.sleep(60)
+                response = requests.get(scan_file_url, headers=headers)
                 if response.status_code == 200:
                     # Converts response to json
                     result = response.json()
@@ -184,6 +197,27 @@ def ScanFile(args):
             print(f'Not a valid answer!\n')
             exit()
 
+
+def ScanURL(args):
+    url_scan_vt = 'https://www.virustotal.com/api/v3/urls/'
+    url_id = base64.urlsafe_b64encode(args.url.encode()).decode().strip("=")
+    url_scan_vt += url_id
+    response = requests.get(url_scan_vt, headers=url_scan_headers)
+    print(response.json())
+
+
+def ScanDomain(args):
+    print("hello")
+
+
+
+def ScanIP(args):
+    print("hello")
+
+#
+# def GetVTResponse(url, headers):
+#     response = requests.post(url, headers=headers)
+#     print(response.json())
 
 def GetBasicFileInfo(result):
     GetVTLink(result)
@@ -430,3 +464,4 @@ def UploadFile(file):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     main(parser.parse_args())
+    
